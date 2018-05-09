@@ -20,7 +20,7 @@ public class ExcelutilApplicationTests {
 	}
 	
 	@Test
-	public void textExportExcel() throws Exception{
+	public void testExportExcel() throws Exception{
 		
 		List<PhoneModel> list = new ArrayList<PhoneModel>();
 		for(int i=0;i<100;i++){
@@ -31,7 +31,7 @@ public class ExcelutilApplicationTests {
 			list.add(model);
 		}
 		String keyValue ="手机名称:phoneName,颜色:color,售价:price"; 
-		ExcelUtil.exportExcel("d:/testsss.xls",ExcelUtil.getMap(keyValue),list,"com.lkx.model.PhoneModel");
+		ExcelUtil.exportExcel("d:/testsss.xls",keyValue,list,"com.lkx.model.PhoneModel");
 	}
 
 }

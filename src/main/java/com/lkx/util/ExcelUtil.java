@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 /**
- * ClassName:ExcelUtil Function: TODO ADD FUNCTION. Reason: TODO ADD REASON.
+ * ClassName:ExcelUtil Function: excel快速读取、写入公共类
  * Date: 2017年6月7日 上午9:44:58
  * 
  * 只需要两步即可完成以前复杂的Excel读取 
@@ -59,11 +59,7 @@ import org.springframework.beans.BeanUtils;
  * @see
  */
 public class ExcelUtil implements Serializable {
-	/**
-	 * serialVersionUID:TODO(用一句话描述这个变量表示什么).
-	 * 
-	 * @since JDK 1.7
-	 */
+
 	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExcelUtil.class);
@@ -87,6 +83,24 @@ public class ExcelUtil implements Serializable {
 			}
 		}
 		return map;
+	}
+	/**
+	 * @author likaixuan
+	 * @param 把传进指定格式的字符串解析到List中
+	 * @return List
+	 * @Date 2018年5月9日 21:42:24
+	 * @since JDK 1.7
+	 */
+	public static List<String> getList(String keyValue){
+		List<String> list = new ArrayList<String>();
+		if (keyValue != null) {
+			String[] str = keyValue.split(",");
+			for (String element : str) {
+				String[] str2 = element.split(":");
+				list.add(str2[0]);
+			}
+		}
+		return list;
 	}
 
 	/**
@@ -500,7 +514,14 @@ public class ExcelUtil implements Serializable {
 	 * @throws Exception
 	 * @since JDK 1.7
 	 */
-	public static void exportExcel(String outFilePath, Map map,List<?> list, String classPath) throws Exception {
+	public static void exportExcel(String outFilePath, String keyValue,List<?> list, String classPath) throws Exception {
+		
+		
+		Map<String,String> map = getMap(keyValue);
+		
+		List<String> keyList = getList(keyValue);
+
+		
 		Class<?> demo = null;
 		demo = Class.forName(classPath);
 		Object obj = demo.newInstance();
@@ -515,18 +536,17 @@ public class ExcelUtil implements Serializable {
 		// 在sheet里创建第一行为表头，参数为行索引(excel的行)，可以是0～65535之间的任何一个
 		HSSFRow rowHeader = sheet.createRow(0);
 		//创建单元格并设置单元格内容
-		Set keySet = map.keySet();// 返回键的集合
-		Iterator it = keySet.iterator(); 
+		
 		//存储属性信息
 		Map<String,String> attMap = new HashMap();
 		int index = 0;
 		
-        while(it.hasNext()){ 
-        	String key = it.next().toString();
-            rowHeader.createCell(index).setCellValue(key);
+		for (String key : keyList) {
+			rowHeader.createCell(index).setCellValue(key);
             attMap.put(Integer.toString(index), map.get(key).toString());
             index++;
-        } 
+		}
+		
 		// 在sheet里创建表头下的数据
         for(int i=1;i<list.size();i++){
         	HSSFRow row = sheet.createRow(i);
