@@ -150,8 +150,8 @@ public class ExcelUtil implements Serializable {
 			Sheet hssfSheet = wb.getSheetAt(sheetNum);
 
 			// 设置默认最大行为2w行
-			if (hssfSheet != null && hssfSheet.getLastRowNum() > 20000) {
-				throw new Exception("Excel 数据超过20000行,请检查是否有空行,或分批导入");
+			if (hssfSheet != null && hssfSheet.getLastRowNum() > 60000) {
+				throw new Exception("Excel 数据超过60000行,请检查是否有空行,或分批导入");
 			}
 
 			// 循环行Row
@@ -466,7 +466,7 @@ public class ExcelUtil implements Serializable {
 
 		} else if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
 			if (DateUtil.isCellDateFormatted(cell)) {
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				try {
 					if (attrType == String.class) {
 						val = sdf.format(DateUtil.getJavaDate(cell.getNumericCellValue()));
