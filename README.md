@@ -6,7 +6,7 @@ ExcelUtil借助反射和POI对Excel读取,省略了以往读取Excel的繁琐步
 <dependency>
     <groupId>net.oschina.likaixuan</groupId>
     <artifactId>excelutil</artifactId>
-    <version>1.0</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 ```
