@@ -14,9 +14,11 @@ public class ExcelutilApplicationTests {
 	@Test
 	public void contextLoads() throws Exception {
 	    
-	     String keyValue ="手机名称:phoneName,颜色:color,售价:price"; 
-	     List<PhoneModel> list =  ExcelUtil.readXls("C://test.xlsx",ExcelUtil.getMap(keyValue),"com.lkx.model.PhoneModel");
-	     System.out.println(list.size());
+	     String keyValue ="手机名称:phoneName,颜色:color,售价:price,时间:sj"; 
+	     List<PhoneModel> list =  ExcelUtil.readXls("D://testsss.xls",ExcelUtil.getMap(keyValue),"com.lkx.model.PhoneModel");
+	     for (PhoneModel phoneModel : list) {
+			System.out.println(phoneModel);
+		}
 	}
 	
 	@Test
@@ -32,6 +34,7 @@ public class ExcelutilApplicationTests {
 		}
 		String keyValue ="手机名称:phoneName,颜色:color,售价:price"; 
 		ExcelUtil.exportExcel("d:/testsss.xls",keyValue,list,"com.lkx.model.PhoneModel");
+		
 	}
 
 }

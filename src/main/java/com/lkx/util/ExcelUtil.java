@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -45,13 +47,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 /**
- * ClassName:ExcelUtil Function: excel快速读取、写入公共类
- * Date: 2017年6月7日 上午9:44:58
+ * ClassName:ExcelUtil Function: excel快速读取、写入公共类 Date: 2017年6月7日 上午9:44:58
  * 
- * 只需要两步即可完成以前复杂的Excel读取 
- * 用法步骤： 
- * 1.定义需要读取的表头字段和表头对应的属性字段 String keyValue ="手机名称:phoneName,颜色:color,售价:price"; 
- * 2.读取数据 List<PhoneModel> list =  ExcelUtil.readXls("C://test.xlsx",ExcelUtil.getMap(keyValue),"com.lkx.excel.PhoneModel");
+ * 只需要两步即可完成以前复杂的Excel读取 用法步骤： 1.定义需要读取的表头字段和表头对应的属性字段 String keyValue
+ * ="手机名称:phoneName,颜色:color,售价:price"; 2.读取数据 List<PhoneModel> list =
+ * ExcelUtil.readXls("C://test.xlsx",ExcelUtil.getMap(keyValue),"com.lkx.excel.PhoneModel");
  *
  * @author likaixuan
  * @version V1.0
@@ -84,6 +84,7 @@ public class ExcelUtil implements Serializable {
 		}
 		return map;
 	}
+
 	/**
 	 * @author likaixuan
 	 * @param 把传进指定格式的字符串解析到List中
@@ -91,7 +92,7 @@ public class ExcelUtil implements Serializable {
 	 * @Date 2018年5月9日 21:42:24
 	 * @since JDK 1.7
 	 */
-	public static List<String> getList(String keyValue){
+	public static List<String> getList(String keyValue) {
 		List<String> list = new ArrayList<String>();
 		if (keyValue != null) {
 			String[] str = keyValue.split(",");
@@ -419,7 +420,7 @@ public class ExcelUtil implements Serializable {
 		}
 
 	}
-	
+
 	/**
 	 * getAttrVal:(反射的get方法得到属性值)
 	 *
@@ -435,8 +436,7 @@ public class ExcelUtil implements Serializable {
 	 * @throws Exception
 	 * @since JDK 1.7
 	 */
-	public static Object getAttrVal(Object obj, String att,Class<?> type)
-			throws Exception {
+	public static Object getAttrVal(Object obj, String att, Class<?> type) throws Exception {
 		try {
 			Method method = obj.getClass().getMethod("get" + StringUtil.toUpperCaseFirstOne(att));
 			Object value = new Object();
@@ -514,14 +514,12 @@ public class ExcelUtil implements Serializable {
 	 * @throws Exception
 	 * @since JDK 1.7
 	 */
-	public static void exportExcel(String outFilePath, String keyValue,List<?> list, String classPath) throws Exception {
-		
-		
-		Map<String,String> map = getMap(keyValue);
-		
+	public static void exportExcel(String outFilePath, String keyValue, List<?> list, String classPath)
+			throws Exception {
+
+		Map<String, String> map = getMap(keyValue);
 		List<String> keyList = getList(keyValue);
 
-		
 		Class<?> demo = null;
 		demo = Class.forName(classPath);
 		Object obj = demo.newInstance();
@@ -529,49 +527,128 @@ public class ExcelUtil implements Serializable {
 		HSSFWorkbook wb = new HSSFWorkbook();
 		// 建立新的sheet对象（excel的表单）
 		HSSFSheet sheet = wb.createSheet("sheet1");
-		//声明样式
+		// 声明样式
 		HSSFCellStyle style = wb.createCellStyle();
-		//居中显示
+		// 居中显示
 		style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 		// 在sheet里创建第一行为表头，参数为行索引(excel的行)，可以是0～65535之间的任何一个
 		HSSFRow rowHeader = sheet.createRow(0);
-		//创建单元格并设置单元格内容
-		
-		//存储属性信息
-		Map<String,String> attMap = new HashMap();
+		// 创建单元格并设置单元格内容
+
+		// 存储属性信息
+		Map<String, String> attMap = new HashMap();
 		int index = 0;
-		
+
 		for (String key : keyList) {
 			rowHeader.createCell(index).setCellValue(key);
-            attMap.put(Integer.toString(index), map.get(key).toString());
-            index++;
+			attMap.put(Integer.toString(index), map.get(key).toString());
+			index++;
 		}
-		
+
 		// 在sheet里创建表头下的数据
-        for(int i=1;i<list.size();i++){
-        	HSSFRow row = sheet.createRow(i);
-        	for(int j=0;j<map.size();j++){
-        		Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)), new Class[] { obj.getClass() });
-        		Object value = getAttrVal(list.get(i), attMap.get(Integer.toString(j)), attrType);
-        		row.createCell(j).setCellValue(value.toString());
-        		style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
-        	}
-        }
-		
+		for (int i = 1; i < list.size(); i++) {
+			HSSFRow row = sheet.createRow(i);
+			for (int j = 0; j < map.size(); j++) {
+				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
+						new Class[] { obj.getClass() });
+				Object value = getAttrVal(list.get(i), attMap.get(Integer.toString(j)), attrType);
+				row.createCell(j).setCellValue(value.toString());
+				style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+			}
+		}
+
 		// 输出Excel文件
-		try {  
-            FileOutputStream out = new FileOutputStream(outFilePath);  
-            wb.write(out);  
-            out.close();  
-            LOGGER.info("导出成功!");  
-        } catch (FileNotFoundException e) {  
-        	LOGGER.info("导出失败！");  
-            e.printStackTrace();  
-        } catch (IOException e) {  
-        	LOGGER.info("导出失败！");  
-            e.printStackTrace();  
-        }  
-		
+		try {
+			FileOutputStream out = new FileOutputStream(outFilePath);
+			wb.write(out);
+			out.close();
+			LOGGER.info("导出成功!");
+		} catch (FileNotFoundException e) {
+			LOGGER.info("导出失败！");
+			e.printStackTrace();
+		} catch (IOException e) {
+			LOGGER.info("导出失败！");
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * exportExcel:(导出Excel)
+	 *
+	 * @author likaixuan
+	 * @param hssfCell
+	 * @return
+	 * @throws Exception
+	 * @since JDK 1.7
+	 */
+	public static void exportExcelOutputStream(HttpServletResponse response, String keyValue, List<?> list, String classPath,String... fileName)
+			throws Exception {
+
+		Map<String, String> map = getMap(keyValue);
+		List<String> keyList = getList(keyValue);
+
+		Class<?> demo = null;
+		demo = Class.forName(classPath);
+		Object obj = demo.newInstance();
+		// 创建HSSFWorkbook对象(excel的文档对象)
+		HSSFWorkbook wb = new HSSFWorkbook();
+		// 建立新的sheet对象（excel的表单）
+		HSSFSheet sheet = wb.createSheet("sheet1");
+		// 声明样式
+		HSSFCellStyle style = wb.createCellStyle();
+		// 居中显示
+		style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		// 在sheet里创建第一行为表头，参数为行索引(excel的行)，可以是0～65535之间的任何一个
+		HSSFRow rowHeader = sheet.createRow(0);
+		// 创建单元格并设置单元格内容
+
+		// 存储属性信息
+		Map<String, String> attMap = new HashMap();
+		int index = 0;
+
+		for (String key : keyList) {
+			rowHeader.createCell(index).setCellValue(key);
+			attMap.put(Integer.toString(index), map.get(key).toString());
+			index++;
+		}
+
+		// 在sheet里创建表头下的数据
+		for (int i = 1; i < list.size(); i++) {
+			HSSFRow row = sheet.createRow(i);
+			for (int j = 0; j < map.size(); j++) {
+				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
+						new Class[] { obj.getClass() });
+				Object value = getAttrVal(list.get(i), attMap.get(Integer.toString(j)), attrType);
+				row.createCell(j).setCellValue(value.toString());
+				style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+			}
+		}
+
+		// 输出Excel文件
+		try {
+			SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss"); 
+            String newFileName = fileName[0];
+            if(StringUtils.isEmpty(fileName[0])){
+            	newFileName = df.format(new Date());
+            }
+			OutputStream outstream = response.getOutputStream();
+			response.reset();
+			response.setHeader("Content-disposition",
+					"attachment; filename=" + new String(newFileName.getBytes(), "iso-8859-1") + ".xls");
+			response.setContentType("application/x-download");
+			wb.write(outstream);
+			outstream.close();
+
+			LOGGER.info("导出成功!");
+		} catch (FileNotFoundException e) {
+			LOGGER.info("导出失败！");
+			e.printStackTrace();
+		} catch (IOException e) {
+			LOGGER.info("导出失败！");
+			e.printStackTrace();
+		}
+
 	}
 
 	/**
