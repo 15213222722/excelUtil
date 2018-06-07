@@ -1,4 +1,4 @@
-#ExcelUtil
+﻿#ExcelUtil
 
 ExcelUtil借助反射和POI对Excel读取,省略了以往读取Excel的繁琐步骤,调用ExcelUtil只需要2步,对,你没有看错,2步足以读取到Excel的内容.兼容03/07版Excel.
 ```
@@ -6,7 +6,7 @@ ExcelUtil借助反射和POI对Excel读取,省略了以往读取Excel的繁琐步
 <dependency>
     <groupId>net.oschina.likaixuan</groupId>
     <artifactId>excelutil</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 ```
