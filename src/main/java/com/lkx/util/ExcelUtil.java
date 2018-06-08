@@ -96,6 +96,7 @@ public class ExcelUtil implements Serializable {
 		List<String> list = new ArrayList<String>();
 		if (keyValue != null) {
 			String[] str = keyValue.split(",");
+			
 			for (String element : str) {
 				String[] str2 = element.split(":");
 				list.add(str2[0]);
@@ -275,6 +276,7 @@ public class ExcelUtil implements Serializable {
 			LOGGER.error("您输入的excel格式不正确");
 			throw new Exception("您输入的excel格式不正确");
 		}
+		//默认循环所有sheet，如果rowNumIndex[]
 		for (int sheetNum = 0; sheetNum < wb.getNumberOfSheets(); sheetNum++) {// 获取每个Sheet表
 
 			int rowNum_x = -1;// 记录第x行为表头
@@ -376,6 +378,147 @@ public class ExcelUtil implements Serializable {
 							continue;
 						}
 						String attr = map.get(key).toString();// 得到属性
+
+						Class<?> attrType = BeanUtils.findPropertyType(attr, new Class[] { obj.getClass() });
+
+						Cell cell = hssfRow.getCell(cellNum_x);
+						getValue(cell, obj, attr, attrType, rowNum, cellNum_x, key);
+
+					}
+					list.add(obj);
+				}
+
+			}
+		}
+		is.close();
+		// wb.close();
+		return (List<T>) list;
+	}
+	
+	
+	/**
+	 * readXlsPart:(根据传进来的map集合读取Excel) 传进来4个参数 <String,String>类型，第二个要反射的类的具体路径)
+	 *
+	 * @author likaixuan
+	 * @param filePath
+	 *            Excel文件路径
+	 * @param map
+	 *            表头和属性的Map集合,其中Map中Key为Excel列的名称，Value为反射类的属性
+	 * @param classPath
+	 *            需要映射的model的路径
+	 * @return
+	 * @throws Exception
+	 * @since JDK 1.7
+	 */
+	public static <T> List<T> readXlsPart(ExcelParam param)
+			throws Exception {
+
+		Set keySet = param.getMap().keySet();// 返回键的集合
+
+		/** 反射用 **/
+		Class<?> demo = null;
+		Object obj = null;
+		/** 反射用 **/
+
+		List<Object> list = new ArrayList<Object>();
+		demo = Class.forName(param.getClassPath());
+		String fileType = param.getFilePath().substring(param.getFilePath().lastIndexOf(".") + 1, param.getFilePath().length());
+		InputStream is = new FileInputStream(param.getFilePath());
+		Workbook wb = null;
+
+		if (ExcelTypeEnum.EXCEL_THREE.getText().equals(fileType)) {
+			wb = new HSSFWorkbook(is);
+		} else if (ExcelTypeEnum.EXCEL_SEVEN.getText().equals(fileType)) {
+			wb = new XSSFWorkbook(is);
+		} else {
+			LOGGER.error("您输入的excel格式不正确");
+			throw new Exception("您输入的excel格式不正确");
+		}
+		int startSheetNum = 0;
+		int endSheetNum = 1;
+		if(null != param.getSheetIndex()){
+			startSheetNum = param.getSheetIndex()-1;
+			endSheetNum = param.getSheetIndex();
+		}
+		for (int sheetNum = startSheetNum; sheetNum < endSheetNum; sheetNum++) {// 获取每个Sheet表
+
+			int rowNum_x = -1;// 记录第x行为表头
+			Map<String, Integer> cellmap = new HashMap<String, Integer>();// 存放每一个field字段对应所在的列的序号
+			List<String> headlist = new ArrayList();// 存放所有的表头字段信息
+
+			Sheet hssfSheet = wb.getSheetAt(sheetNum);
+
+			// 设置默认最大行为2w行
+			if (hssfSheet != null && hssfSheet.getLastRowNum() > 60000) {
+				throw new Exception("Excel 数据超过60000行,请检查是否有空行,或分批导入");
+			}
+
+			// 循环行Row
+			for (int rowNum = 0; rowNum <= hssfSheet.getLastRowNum(); rowNum++) {
+
+				if (param.getRowNumIndex() != null && rowNum_x == -1) {// 如果传值指定从第几行开始读，就从指定行寻找，否则自动寻找
+					Row hssfRow = hssfSheet.getRow(param.getRowNumIndex());
+					if (hssfRow == null) {
+						throw new RuntimeException("指定的行为空，请检查");
+					}
+					rowNum = param.getRowNumIndex() - 1;
+				}
+				Row hssfRow = hssfSheet.getRow(rowNum);
+				if (hssfRow == null) {
+					continue;
+				}
+				boolean flag = false;
+				for (int i = 0; i < hssfRow.getLastCellNum(); i++) {
+					if (hssfRow.getCell(i) != null && !("").equals(hssfRow.getCell(i).toString().trim())) {
+						flag = true;
+					}
+				}
+				if (!flag) {
+					continue;
+				}
+
+				if (rowNum_x == -1) {
+					// 循环列Cell
+					for (int cellNum = 0; cellNum <= hssfRow.getLastCellNum(); cellNum++) {
+
+						Cell hssfCell = hssfRow.getCell(cellNum);
+						if (hssfCell == null) {
+							continue;
+						}
+
+						String tempCellValue = hssfSheet.getRow(rowNum).getCell(cellNum).getStringCellValue();
+
+						tempCellValue = StringUtils.remove(tempCellValue, (char) 160);
+						tempCellValue = tempCellValue.trim();
+
+						headlist.add(tempCellValue);
+
+						Iterator it = keySet.iterator();
+
+						while (it.hasNext()) {
+							Object key = it.next();
+							if (StringUtils.isNotBlank(tempCellValue)
+									&& StringUtils.equals(tempCellValue, key.toString())) {
+								rowNum_x = rowNum;
+								cellmap.put(param.getMap().get(key).toString(), cellNum);
+							}
+						}
+						if (rowNum_x == -1) {
+							LOGGER.error("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
+							throw new Exception("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
+						}
+					}
+
+				} else {
+					obj = demo.newInstance();
+					Iterator it = keySet.iterator();
+					while (it.hasNext()) {
+						Object key = it.next();
+						Integer cellNum_x = cellmap.get(param.getMap().get(key).toString());
+						if (cellNum_x == null || hssfRow.getCell(cellNum_x) == null) {
+							continue;
+						}
+						String attr = param.getMap().get(key).toString();// 得到属性
 
 						Class<?> attrType = BeanUtils.findPropertyType(attr, new Class[] { obj.getClass() });
 
