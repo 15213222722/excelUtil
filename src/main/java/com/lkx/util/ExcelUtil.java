@@ -692,9 +692,14 @@ public class ExcelUtil implements Serializable {
 		for (int i = 1; i < list.size(); i++) {
 			HSSFRow row = sheet.createRow(i);
 			for (int j = 0; j < map.size(); j++) {
+				
 				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
 						new Class[] { obj.getClass() });
+				
 				Object value = getAttrVal(list.get(i), attMap.get(Integer.toString(j)), attrType);
+				if(null==value){
+					value = "";
+				}
 				row.createCell(j).setCellValue(value.toString());
 				style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 			}
@@ -763,6 +768,9 @@ public class ExcelUtil implements Serializable {
 				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
 						new Class[] { obj.getClass() });
 				Object value = getAttrVal(list.get(i), attMap.get(Integer.toString(j)), attrType);
+				if(null==value){
+					value = "";
+				}
 				row.createCell(j).setCellValue(value.toString());
 				style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 			}
