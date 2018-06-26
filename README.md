@@ -16,3 +16,9 @@ String keyValue ="手机名称:phoneName,颜色:color,售价:price";
 2.读取数据 
 List<Object> list =  ExcelUtil.readXls("C://test.xlsx",ExcelUtil.getMap(keyValue),"com.lkx.model.PhoneModel");
 ```
+------------------------------------------------------------------------------
+-
+- 升级到1.5.5
+- 2018年6月26日 20:24:31
+-
+------------------------------------------------------------------------------
