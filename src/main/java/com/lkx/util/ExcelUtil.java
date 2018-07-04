@@ -42,8 +42,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 /**
@@ -62,7 +60,6 @@ public class ExcelUtil implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ExcelUtil.class);
 
 	/**
 	 * getMap:(将传进来的表头和表头对应的属性存进Map集合，表头字段为key,属性为value)
@@ -140,7 +137,6 @@ public class ExcelUtil implements Serializable {
 		} else if (fileType.equals("xlsx")) {
 			wb = new XSSFWorkbook(is);
 		} else {
-			LOGGER.error("您输入的excel格式不正确");
 			throw new Exception("您输入的excel格式不正确");
 		}
 		for (int sheetNum = 0; sheetNum < 1; sheetNum++) {// 获取每个Sheet表
@@ -207,7 +203,6 @@ public class ExcelUtil implements Serializable {
 							}
 						}
 						if (rowNum_x == -1) {
-							LOGGER.error("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
 							throw new Exception("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
 						}
 					}
@@ -273,7 +268,6 @@ public class ExcelUtil implements Serializable {
 		} else if (fileType.equals("xlsx")) {
 			wb = new XSSFWorkbook(is);
 		} else {
-			LOGGER.error("您输入的excel格式不正确");
 			throw new Exception("您输入的excel格式不正确");
 		}
 		//默认循环所有sheet，如果rowNumIndex[]
@@ -333,7 +327,6 @@ public class ExcelUtil implements Serializable {
 							}
 						}
 						if (rowNum_x == -1) {
-							LOGGER.error("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
 							throw new Exception("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
 						}
 					}
@@ -431,7 +424,6 @@ public class ExcelUtil implements Serializable {
 		} else if (ExcelTypeEnum.EXCEL_SEVEN.getText().equals(fileType)) {
 			wb = new XSSFWorkbook(is);
 		} else {
-			LOGGER.error("您输入的excel格式不正确");
 			throw new Exception("您输入的excel格式不正确");
 		}
 		int startSheetNum = 0;
@@ -504,7 +496,6 @@ public class ExcelUtil implements Serializable {
 							}
 						}
 						if (rowNum_x == -1) {
-							LOGGER.error("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
 							throw new Exception("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
 						}
 					}
@@ -557,9 +548,7 @@ public class ExcelUtil implements Serializable {
 			Method method = obj.getClass().getMethod("set" + StringUtil.toUpperCaseFirstOne(att), type);
 			method.invoke(obj, value);
 		} catch (Exception e) {
-			e.printStackTrace();
-			LOGGER.error("第" + (row + 1) + " 行  " + (col + 1) + "列   属性：" + key + " 赋值异常  " + e.getStackTrace());
-			throw new Exception("第" + (row + 1) + " 行  " + (col + 1) + "列   属性：" + key + " 赋值异常  ");
+			throw new Exception("第" + (row + 1) + " 行  " + (col + 1) + "列   属性：" + key + " 赋值异常  "+e);
 		}
 
 	}
@@ -617,7 +606,6 @@ public class ExcelUtil implements Serializable {
 						val = dateConvertFormat(sdf.format(DateUtil.getJavaDate(cell.getNumericCellValue())));
 					}
 				} catch (ParseException e) {
-					LOGGER.error("日期格式转换错误");
 					throw new Exception("第" + (row + 1) + " 行  " + (col + 1) + "列   属性：" + key + " 日期格式转换错误  ");
 				}
 			} else {
@@ -689,8 +677,8 @@ public class ExcelUtil implements Serializable {
 		}
 
 		// 在sheet里创建表头下的数据
-		for (int i = 1; i < list.size(); i++) {
-			HSSFRow row = sheet.createRow(i);
+		for (int i = 0; i < list.size(); i++) {
+			HSSFRow row = sheet.createRow(i+1);
 			for (int j = 0; j < map.size(); j++) {
 				
 				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
@@ -710,13 +698,10 @@ public class ExcelUtil implements Serializable {
 			FileOutputStream out = new FileOutputStream(outFilePath);
 			wb.write(out);
 			out.close();
-			LOGGER.info("导出成功!");
 		} catch (FileNotFoundException e) {
-			LOGGER.info("导出失败！");
-			e.printStackTrace();
+			throw new FileNotFoundException("导出失败！"+e);
 		} catch (IOException e) {
-			LOGGER.info("导出失败！");
-			e.printStackTrace();
+			throw new IOException("导出失败！"+e);
 		}
 
 	}
@@ -762,8 +747,8 @@ public class ExcelUtil implements Serializable {
 		}
 
 		// 在sheet里创建表头下的数据
-		for (int i = 1; i < list.size(); i++) {
-			HSSFRow row = sheet.createRow(i);
+		for (int i = 0; i < list.size(); i++) {
+			HSSFRow row = sheet.createRow(i+1);
 			for (int j = 0; j < map.size(); j++) {
 				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
 						new Class[] { obj.getClass() });
@@ -790,14 +775,11 @@ public class ExcelUtil implements Serializable {
 			response.setContentType("application/x-download");
 			wb.write(outstream);
 			outstream.close();
-
-			LOGGER.info("导出成功!");
+			
 		} catch (FileNotFoundException e) {
-			LOGGER.info("导出失败！");
-			e.printStackTrace();
+			throw new FileNotFoundException("导出失败！"+e);
 		} catch (IOException e) {
-			LOGGER.info("导出失败！");
-			e.printStackTrace();
+			throw new IOException("导出失败！"+e);
 		}
 
 	}
