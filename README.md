@@ -34,9 +34,8 @@ List<Object> list =  ExcelUtil.readXls("C://test.xlsx",ExcelUtil.getMap(keyValue
 1.本次升级新增大家呼声比较高的流导入功能。
 使用Demo
 
-@RequestMapping("/test")
-@ResponseBody
-
+@RequestMapping("/test")\r\n
+@ResponseBody\r\n
 public List<PhoneModel> testImport(MultipartFile file) throws IOException, Exception{
 
 	String keyValue ="手机名称:phoneName,颜色:color,售价:price,时间:sj"; 
