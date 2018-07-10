@@ -36,6 +36,7 @@ List<Object> list =  ExcelUtil.readXls("C://test.xlsx",ExcelUtil.getMap(keyValue
 
 @RequestMapping("/test")
 @ResponseBody
+
 public List<PhoneModel> testImport(MultipartFile file) throws IOException, Exception{
 
 	String keyValue ="手机名称:phoneName,颜色:color,售价:price,时间:sj"; 
