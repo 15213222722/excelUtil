@@ -6,7 +6,7 @@ ExcelUtil借助反射和POI对Excel读取,省略了以往读取Excel的繁琐步
 <dependency>
     <groupId>net.oschina.likaixuan</groupId>
     <artifactId>excelutil</artifactId>
-    <version>1.5.3</version>
+    <version>2.0.1</version>
 </dependency>
 ```
 ```
@@ -32,3 +32,13 @@ List<Object> list =  ExcelUtil.readXls("C://test.xlsx",ExcelUtil.getMap(keyValue
 -
 ------------------------------------------------------------------------------
 1.本次升级新增大家呼声比较高的流导入功能。
+使用Demo
+
+@RequestMapping("/test")
+@ResponseBody
+public List<PhoneModel> testImport(MultipartFile file) throws IOException, Exception{
+
+	String keyValue ="手机名称:phoneName,颜色:color,售价:price,时间:sj"; 
+	List<PhoneModel> list = ExcelUtil.readXls(file.getBytes(), ExcelUtil.getMap(keyValue), "com.lkx.model.PhoneModel");
+	return list;
+}
