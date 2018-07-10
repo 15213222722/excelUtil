@@ -9,6 +9,8 @@
 
 package com.lkx.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,10 +33,13 @@ import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.POIXMLDocument;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -59,7 +64,6 @@ import org.springframework.beans.BeanUtils;
 public class ExcelUtil implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
 
 	/**
 	 * getMap:(将传进来的表头和表头对应的属性存进Map集合，表头字段为key,属性为value)
@@ -93,7 +97,7 @@ public class ExcelUtil implements Serializable {
 		List<String> list = new ArrayList<String>();
 		if (keyValue != null) {
 			String[] str = keyValue.split(",");
-			
+
 			for (String element : str) {
 				String[] str2 = element.split(":");
 				list.add(str2[0]);
@@ -270,7 +274,7 @@ public class ExcelUtil implements Serializable {
 		} else {
 			throw new Exception("您输入的excel格式不正确");
 		}
-		//默认循环所有sheet，如果rowNumIndex[]
+		// 默认循环所有sheet，如果rowNumIndex[]
 		for (int sheetNum = 0; sheetNum < wb.getNumberOfSheets(); sheetNum++) {// 获取每个Sheet表
 
 			int rowNum_x = -1;// 记录第x行为表头
@@ -387,8 +391,7 @@ public class ExcelUtil implements Serializable {
 		// wb.close();
 		return (List<T>) list;
 	}
-	
-	
+
 	/**
 	 * readXlsPart:(根据传进来的map集合读取Excel) 传进来4个参数 <String,String>类型，第二个要反射的类的具体路径)
 	 *
@@ -403,8 +406,7 @@ public class ExcelUtil implements Serializable {
 	 * @throws Exception
 	 * @since JDK 1.7
 	 */
-	public static <T> List<T> readXlsPart(ExcelParam param)
-			throws Exception {
+	public static <T> List<T> readXlsPart(ExcelParam param) throws Exception {
 
 		Set keySet = param.getMap().keySet();// 返回键的集合
 
@@ -415,7 +417,8 @@ public class ExcelUtil implements Serializable {
 
 		List<Object> list = new ArrayList<Object>();
 		demo = Class.forName(param.getClassPath());
-		String fileType = param.getFilePath().substring(param.getFilePath().lastIndexOf(".") + 1, param.getFilePath().length());
+		String fileType = param.getFilePath().substring(param.getFilePath().lastIndexOf(".") + 1,
+				param.getFilePath().length());
 		InputStream is = new FileInputStream(param.getFilePath());
 		Workbook wb = null;
 
@@ -428,8 +431,8 @@ public class ExcelUtil implements Serializable {
 		}
 		int startSheetNum = 0;
 		int endSheetNum = 1;
-		if(null != param.getSheetIndex()){
-			startSheetNum = param.getSheetIndex()-1;
+		if (null != param.getSheetIndex()) {
+			startSheetNum = param.getSheetIndex() - 1;
 			endSheetNum = param.getSheetIndex();
 		}
 		for (int sheetNum = startSheetNum; sheetNum < endSheetNum; sheetNum++) {// 获取每个Sheet表
@@ -548,7 +551,7 @@ public class ExcelUtil implements Serializable {
 			Method method = obj.getClass().getMethod("set" + StringUtil.toUpperCaseFirstOne(att), type);
 			method.invoke(obj, value);
 		} catch (Exception e) {
-			throw new Exception("第" + (row + 1) + " 行  " + (col + 1) + "列   属性：" + key + " 赋值异常  "+e);
+			throw new Exception("第" + (row + 1) + " 行  " + (col + 1) + "列   属性：" + key + " 赋值异常  " + e);
 		}
 
 	}
@@ -678,14 +681,14 @@ public class ExcelUtil implements Serializable {
 
 		// 在sheet里创建表头下的数据
 		for (int i = 0; i < list.size(); i++) {
-			HSSFRow row = sheet.createRow(i+1);
+			HSSFRow row = sheet.createRow(i + 1);
 			for (int j = 0; j < map.size(); j++) {
-				
+
 				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
 						new Class[] { obj.getClass() });
-				
+
 				Object value = getAttrVal(list.get(i), attMap.get(Integer.toString(j)), attrType);
-				if(null==value){
+				if (null == value) {
 					value = "";
 				}
 				row.createCell(j).setCellValue(value.toString());
@@ -699,9 +702,9 @@ public class ExcelUtil implements Serializable {
 			wb.write(out);
 			out.close();
 		} catch (FileNotFoundException e) {
-			throw new FileNotFoundException("导出失败！"+e);
+			throw new FileNotFoundException("导出失败！" + e);
 		} catch (IOException e) {
-			throw new IOException("导出失败！"+e);
+			throw new IOException("导出失败！" + e);
 		}
 
 	}
@@ -715,8 +718,8 @@ public class ExcelUtil implements Serializable {
 	 * @throws Exception
 	 * @since JDK 1.7
 	 */
-	public static void exportExcelOutputStream(HttpServletResponse response, String keyValue, List<?> list, String classPath,String... fileName)
-			throws Exception {
+	public static void exportExcelOutputStream(HttpServletResponse response, String keyValue, List<?> list,
+			String classPath, String... fileName) throws Exception {
 
 		Map<String, String> map = getMap(keyValue);
 		List<String> keyList = getList(keyValue);
@@ -748,12 +751,12 @@ public class ExcelUtil implements Serializable {
 
 		// 在sheet里创建表头下的数据
 		for (int i = 0; i < list.size(); i++) {
-			HSSFRow row = sheet.createRow(i+1);
+			HSSFRow row = sheet.createRow(i + 1);
 			for (int j = 0; j < map.size(); j++) {
 				Class<?> attrType = BeanUtils.findPropertyType(attMap.get(Integer.toString(j)),
 						new Class[] { obj.getClass() });
 				Object value = getAttrVal(list.get(i), attMap.get(Integer.toString(j)), attrType);
-				if(null==value){
+				if (null == value) {
 					value = "";
 				}
 				row.createCell(j).setCellValue(value.toString());
@@ -763,11 +766,11 @@ public class ExcelUtil implements Serializable {
 
 		// 输出Excel文件
 		try {
-			SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss"); 
-            String newFileName = fileName[0];
-            if(StringUtils.isEmpty(fileName[0])){
-            	newFileName = df.format(new Date());
-            }
+			SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+			String newFileName = fileName[0];
+			if (StringUtils.isEmpty(fileName[0])) {
+				newFileName = df.format(new Date());
+			}
 			OutputStream outstream = response.getOutputStream();
 			response.reset();
 			response.setHeader("Content-disposition",
@@ -775,13 +778,166 @@ public class ExcelUtil implements Serializable {
 			response.setContentType("application/x-download");
 			wb.write(outstream);
 			outstream.close();
-			
+
 		} catch (FileNotFoundException e) {
-			throw new FileNotFoundException("导出失败！"+e);
+			throw new FileNotFoundException("导出失败！" + e);
 		} catch (IOException e) {
-			throw new IOException("导出失败！"+e);
+			throw new IOException("导出失败！" + e);
 		}
 
+	}
+
+	/**
+	 * 使用流生成Excel
+	 * 
+	 * @param file
+	 * @param map
+	 * @param classPath
+	 * @param rowNumIndex
+	 * @return
+	 * @throws Exception
+	 */
+	public static <T> List<T> readXls(byte[] buf, Map map, String classPath, int... rowNumIndex) throws Exception {
+
+		Set keySet = map.keySet();// 返回键的集合
+
+		/** 反射用 **/
+		Class<?> demo = null;
+		Object obj = null;
+		/** 反射用 **/
+
+		List<Object> list = new ArrayList<Object>();
+		demo = Class.forName(classPath);
+
+		InputStream is = new ByteArrayInputStream(buf);
+
+		Workbook wb = null;
+		
+		if (POIFSFileSystem.hasPOIFSHeader(is)) {
+            wb = new HSSFWorkbook(is);
+        }
+        if (POIXMLDocument.hasOOXMLHeader(is)) {
+            wb = new XSSFWorkbook(OPCPackage.open(is));
+        }
+
+
+
+		// 默认循环所有sheet，如果rowNumIndex[]
+		for (int sheetNum = 0; sheetNum < wb.getNumberOfSheets(); sheetNum++) {// 获取每个Sheet表
+
+			int rowNum_x = -1;// 记录第x行为表头
+			Map<String, Integer> cellmap = new HashMap<String, Integer>();// 存放每一个field字段对应所在的列的序号
+			List<String> headlist = new ArrayList();// 存放所有的表头字段信息
+
+			Sheet hssfSheet = wb.getSheetAt(sheetNum);
+
+			// 循环行Row
+			for (int rowNum = 0; rowNum <= hssfSheet.getLastRowNum(); rowNum++) {
+				if (rowNumIndex != null && rowNumIndex.length > 0 && rowNum_x == -1) {// 如果传值指定从第几行开始读，就从指定行寻找，否则自动寻找
+					Row hssfRow = hssfSheet.getRow(rowNumIndex[0]);
+					if (hssfRow == null) {
+						throw new RuntimeException("指定的行为空，请检查");
+					}
+					rowNum = rowNumIndex[0] - 1;
+				}
+				Row hssfRow = hssfSheet.getRow(rowNum);
+				if (hssfRow == null) {
+					continue;
+				}
+				boolean flag = false;
+				for (int i = 0; i < hssfRow.getLastCellNum(); i++) {
+					if (hssfRow.getCell(i) != null && !("").equals(hssfRow.getCell(i).toString().trim())) {
+						flag = true;
+					}
+				}
+				if (!flag) {
+					continue;
+				}
+
+				if (rowNum_x == -1) {
+					// 循环列Cell
+					for (int cellNum = 0; cellNum <= hssfRow.getLastCellNum(); cellNum++) {
+
+						Cell hssfCell = hssfRow.getCell(cellNum);
+						if (hssfCell == null) {
+							continue;
+						}
+
+						String tempCellValue = hssfSheet.getRow(rowNum).getCell(cellNum).getStringCellValue();
+
+						tempCellValue = StringUtils.remove(tempCellValue, (char) 160);
+						tempCellValue = tempCellValue.trim();
+
+						headlist.add(tempCellValue);
+						Iterator it = keySet.iterator();
+						while (it.hasNext()) {
+							Object key = it.next();
+							if (StringUtils.isNotBlank(tempCellValue)
+									&& StringUtils.equals(tempCellValue, key.toString())) {
+								rowNum_x = rowNum;
+								cellmap.put(map.get(key).toString(), cellNum);
+							}
+						}
+						if (rowNum_x == -1) {
+							throw new Exception("没有找到对应的字段或者对应字段行上面含有不为空白的行字段");
+						}
+					}
+
+					// 读取到列后，检查表头是否完全一致--start
+					for (int i = 0; i < headlist.size(); i++) {
+						boolean boo = false;
+						Iterator itor = keySet.iterator();
+						while (itor.hasNext()) {
+							String tempname = itor.next().toString();
+							if (tempname.equals(headlist.get(i))) {
+								boo = true;
+							}
+						}
+						if (boo == false) {
+							throw new Exception("表头字段和定义的属性字段不匹配，请检查");
+						}
+					}
+
+					Iterator itor = keySet.iterator();
+					while (itor.hasNext()) {
+						boolean boo = false;
+						String tempname = itor.next().toString();
+						for (int i = 0; i < headlist.size(); i++) {
+							if (tempname.equals(headlist.get(i))) {
+								boo = true;
+							}
+						}
+						if (boo == false) {
+							throw new Exception("表头字段和定义的属性字段不匹配，请检查");
+						}
+					}
+					// 读取到列后，检查表头是否完全一致--end
+
+				} else {
+					obj = demo.newInstance();
+					Iterator it = keySet.iterator();
+					while (it.hasNext()) {
+						Object key = it.next();
+						Integer cellNum_x = cellmap.get(map.get(key).toString());
+						if (cellNum_x == null || hssfRow.getCell(cellNum_x) == null) {
+							continue;
+						}
+						String attr = map.get(key).toString();// 得到属性
+
+						Class<?> attrType = BeanUtils.findPropertyType(attr, new Class[] { obj.getClass() });
+
+						Cell cell = hssfRow.getCell(cellNum_x);
+						getValue(cell, obj, attr, attrType, rowNum, cellNum_x, key);
+
+					}
+					list.add(obj);
+				}
+
+			}
+		}
+		is.close();
+		// wb.close();
+		return (List<T>) list;
 	}
 
 	/**
